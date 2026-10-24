@@ -683,7 +683,7 @@
         let currentQuestionIdx = 0;
         let activeQuestionData = null;
         let timerInterval = null;
-        let timeLeft = 20;
+        let timeLeft = 10;
         let isAudioMuted = false;
         let isAutoReadEnabled = false;
         let synth = window.speechSynthesis;
@@ -709,6 +709,8 @@
             const tierAmounts = { 1: 200, 2: 500, 3: 1000 };
             const amountInKobo = tierAmounts[currentSelectedTier] * 100;
 
+            let paymentSuccessful = false;
+
             const handler = PaystackPop.setup({
                 key: 'pk_live_fc0f932056fd8b1265e34a3f47d271d6e8659201',
                 email: userEmail,
@@ -716,20 +718,24 @@
                 currency: "NGN",
                 ref: 'FNT_' + Math.floor((Math.random() * 1000000000) + 1),
                 callback: function(response) {
+                    paymentSuccessful = true;
                     document.getElementById("welcomeModal").classList.add("hidden");
                     startTriviaGame();
                 },
                 onClose: function() {
-                    document.getElementById("welcomeModal").classList.add("hidden");
-                    startTriviaGame();
+                    // Only return to form/alert if payment was NOT completed successfully
+                    if (!paymentSuccessful) {
+                        alert("Payment failed or was cancelled. Returning to entry form.");
+                        document.getElementById("welcomeModal").classList.remove("hidden");
+                    }
                 }
             });
 
             try {
                 handler.openIframe();
             } catch (err) {
-                document.getElementById("welcomeModal").classList.add("hidden");
-                startTriviaGame();
+                alert("Payment gateway error. Please try again.");
+                document.getElementById("welcomeModal").classList.remove("hidden");
             }
         }
 
@@ -810,17 +816,17 @@
         }
 
         function startTimer() {
-            timeLeft = 20;
+            timeLeft = 10;
             const timerBar = document.getElementById("timerBar");
             timerBar.classList.remove("warning");
             timerBar.style.width = "100%";
 
             timerInterval = setInterval(() => {
                 timeLeft -= 0.1;
-                const percentage = (timeLeft / 20) * 100;
+                const percentage = (timeLeft / 10) * 100;
                 timerBar.style.width = `${percentage}%`;
 
-                if (timeLeft <= 5) timerBar.classList.add("warning");
+                if (timeLeft <= 3) timerBar.classList.add("warning");
 
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
