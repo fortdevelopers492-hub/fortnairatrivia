@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fort Naira Trivia Championship</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Paystack Inline JS -->
+    <script src="https://js.paystack.co/v1/inline.js"></script>
+    <!-- EmailJS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root {
+            --bg-gradient-start: #0f172a;
+            --bg-gradient-mid: #1e1b4b;
+            --bg-gradient-end: #0369a1;
+            --accent-green: #10B981;
+            --accent-green-hover: #059669;
+            --accent-red: #EF4444;
+            --accent-amber: #F59E0B;
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --card-bg: #ffffff;
+            --text-dark: #0f172a;
+            --text-muted: #64748b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-mid), var(--bg-gradient-end));
+            min-height: 100vh;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            color: var(--text-dark);
+        }
+
+        header {
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 800;
+            font-size: 1.25rem;
+            color: #ffffff;
+        }
+        .brand-logo i {
+            color: var(--accent-green);
+        }
+        .header-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .btn-icon-toggle {
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid var(--glass-border);
+            color: #fff;
+            padding: 8px 14px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+        .btn-icon-toggle:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+        .btn-icon-toggle.active {
+            background: var(--accent-green);
+            border-color: var(--accent-green);
+        }
+
+        .app-container {
+            flex: 1;
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 12px 20px 24px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media (min-width: 992px) {
+            .app-container.game-active {
+                grid-template-columns: 1fr 320px;
+            }
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .welcome-card {
+            max-width: 520px;
+            width: 100%;
+            padding: 32px;
+            text-align: center;
+            position: relative;
+            animation: modalFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.92) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .welcome-card h1 {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            color: var(--text-dark);
+        }
+        .welcome-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .input-field {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .input-field:focus {
+            border-color: var(--accent-green);
+        }
+
+        .tier-selector {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .tier-option {
+            border: 2px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 14px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .tier-option:hover {
+            border-color: #cbd5e1;
+            background: #f8fafc;
+        }
+        .tier-option.selected {
+            border-color: var(--accent-green);
+            background: rgba(16, 185, 129, 0.06);
+        }
+        .tier-info {
+            text-align: left;
+        }
+        .tier-title {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--text-dark);
+        }
+        .tier-sub {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+        .tier-prize {
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: var(--accent-green);
+        }
+
+        .btn-primary {
+            width: 100%;
+            background: var(--accent-green);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+        }
+        .btn-primary:hover {
+            background: var(--accent-green-hover);
+        }
+
+        .game-main {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .question-card {
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .game-status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 12px;
+        }
+
+        .question-text-wrapper {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+        }
+
+        .question-text {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            line-height: 1.4;
+            flex: 1;
+        }
+
+        .btn-read-aloud {
+            background: #f1f5f9;
+            border: none;
+            color: var(--text-dark);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+        .btn-read-aloud:hover {
+            background: #e2e8f0;
+            color: var(--accent-green);
+        }
+        .btn-read-aloud.speaking {
+            background: var(--accent-green);
+            color: white;
+        }
+
+        .speaking-badge {
+            display: none;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            color: var(--accent-green);
+            font-weight: 700;
+            margin-top: -10px;
+        }
+        .speaking-badge.active {
+            display: flex;
+        }
+
+        .timer-container {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .timer-bar {
+            height: 100%;
+            width: 100%;
+            background: var(--accent-green);
+            transition: width 0.1s linear;
+        }
+        .timer-bar.warning {
+            background: var(--accent-red);
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+        @media (min-width: 640px) {
+            .options-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .option-btn {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            padding: 16px;
+            border-radius: 14px;
+            text-align: left;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s ease;
+        }
+        .option-btn:hover {
+            border-color: var(--accent-green);
+            background: rgba(16, 185, 129, 0.04);
+        }
+        .option-key {
+            width: 28px;
+            height: 28px;
+            background: #e2e8f0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct {
+            background: #d1fae5;
+            border-color: var(--accent-green);
+            color: #065f46;
+        }
+        .option-btn.correct .option-key {
+            background: var(--accent-green);
+            color: white;
+        }
+        .option-btn.wrong {
+            background: #fee2e2;
+            border-color: var(--accent-red);
+            color: #991b1b;
+        }
+        .option-btn.wrong .option-key {
+            background: var(--accent-red);
+            color: white;
+        }
+        .option-btn.disabled {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .ladder-card {
+            padding: 20px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .ladder-title {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .ladder-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 4px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        .ladder-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            background: #f8fafc;
+        }
+        .ladder-item.active {
+            background: var(--accent-green);
+            color: white;
+        }
+        .ladder-item.passed {
+            color: var(--accent-green);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .post-game-modal {
+            text-align: center;
+            max-width: 480px;
+        }
+        .win-icon {
+            font-size: 4rem;
+            color: #f59e0b;
+            margin-bottom: 12px;
+        }
+        .prize-payout {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--accent-green);
+            margin: 16px 0;
+        }
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand-logo">
+            <i class="fa-solid fa-trophy"></i>
+            <span>FORT NAIRA TRIVIA</span>
+        </div>
+        <div class="header-controls">
+            <button class="btn-icon-toggle" id="autoReadToggleBtn">
+                <i class="fa-solid fa-volume-high"></i>
+                <span id="autoReadStatus">Auto-Read: OFF</span>
+            </button>
+            <button class="btn-icon-toggle" id="soundToggleBtn">
+                <i class="fa-solid fa-music"></i>
+            </button>
+        </div>
+    </header>
+
+    <div class="app-container" id="appContainer">
+        <main class="game-main">
+            <div class="glass-card question-card">
+                <div class="game-status-bar">
+                    <span id="questionNumText">Question 1 of 20</span>
+                    <span id="currentLevelText">Level 1 • Easiest</span>
+                </div>
+                <div class="timer-container">
+                    <div class="timer-bar" id="timerBar"></div>
+                </div>
+                <div class="question-text-wrapper">
+                    <h2 class="question-text" id="questionText">Loading trivia question...</h2>
+                    <button class="btn-read-aloud" id="readQuestionBtn">
+                        <i class="fa-solid fa-volume-high"></i>
+                    </button>
+                </div>
+                <div class="speaking-badge" id="speakingBadge">
+                    <i class="fa-solid fa-wave-square fa-spin"></i> Reading aloud...
+                </div>
+                <div class="options-grid" id="optionsGrid"></div>
+            </div>
+        </main>
+
+        <aside class="sidebar">
+            <div class="glass-card ladder-card">
+                <div class="ladder-title">
+                    <i class="fa-solid fa-layer-group" style="color: var(--accent-green);"></i>
+                    <span>Prize Ladder</span>
+                </div>
+                <ul class="ladder-list" id="prizeLadderList"></ul>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Pre-Game Modal (Email & Tier Entry to start playing) -->
+    <div class="modal-overlay" id="welcomeModal">
+        <div class="glass-card welcome-card">
+            <h1>Fort Naira Trivia Championship</h1>
+            <p>Answer 20 questions correctly to win big cash prizes!</p>
+
+            <form id="entryForm" onsubmit="handlePaystackPayment(event)">
+                <div class="form-group">
+                    <label for="userEmail">Your Email Address</label>
+                    <input type="email" id="userEmail" class="input-field" placeholder="your.email@example.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Select Game Tier</label>
+                    <div class="tier-selector">
+                        <div class="tier-option selected" data-tier="1" onclick="selectTier(1)">
+                            <div class="tier-info">
+                                <div class="tier-title">Tier 1</div>
+                                <div class="tier-sub">Entry Fee: ₦200</div>
+                            </div>
+                            <div class="tier-prize">₦1,000 Win</div>
+                        </div>
+
+                        <div class="tier-option" data-tier="2" onclick="selectTier(2)">
+                            <div class="tier-info">
+                                <div class="tier-title">Tier 2</div>
+                                <div class="tier-sub">Entry Fee: ₦500</div>
+                            </div>
+                            <div class="tier-prize">₦2,500 Win</div>
+                        </div>
+
+                        <div class="tier-option" data-tier="3" onclick="selectTier(3)">
+                            <div class="tier-info">
+                                <div class="tier-title">Tier 3</div>
+                                <div class="tier-sub">Entry Fee: ₦1,000</div>
+                            </div>
+                            <div class="tier-prize">₦5,000 Win</div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary" id="payBtn">
+                    <i class="fa-solid fa-lock"></i> Pay & Start Game
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Post Game Outcome Modal -->
+    <div class="modal-overlay hidden" id="postGameModal">
+        <div class="glass-card welcome-card post-game-modal">
+            <div id="postGameIcon" class="win-icon">
+                <i class="fa-solid fa-trophy"></i>
+            </div>
+            <h2 id="postGameTitle">Game Over!</h2>
+            <p id="postGameSubtitle">You failed to reach the grand prize.</p>
+            
+            <div class="prize-payout hidden" id="finalPrizeText">₦0</div>
+
+            <!-- Dynamic Email Sending Status Container (Spinner / Success / Error) -->
+            <div id="emailSpinnerContainer" style="margin: 20px 0;"></div>
+
+            <div id="emailModalActions" style="display: none;">
+                <button class="btn-primary" onclick="restartGame()">
+                    <i class="fa-solid fa-rotate-right"></i> Play Again
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const EMAILJS_CONFIG = {
+            PUBLIC_KEY: "AD_UDUCDS1A-6FXwV",           
+            SERVICE_ID: "service_jewj0aa",            
+            ADMIN_TEMPLATE_ID: "template_hzj40ye",     
+            USER_TEMPLATE_ID: "template_z8pxrxl"      
+        };
+
+        (function() {
+            if (EMAILJS_CONFIG.PUBLIC_KEY && EMAILJS_CONFIG.PUBLIC_KEY !== "YOUR_PUBLIC_KEY") {
+                emailjs.init(EMAILJS_CONFIG.PUBLIC_KEY);
+            }
+        })();
+
+        const PRIZE_LADDERS = {
+            1: ["₦1", "₦2", "₦3", "₦5", "₦10", "₦15", "₦20", "₦30", "₦45", "₦70", "₦100", "₦140", "₦200", "₦280", "₦400", "₦500", "₦600", "₦750", "₦900", "₦1,000"],
+            2: ["₦5", "₦10", "₦15", "₦20", "₦25", "₦30", "₦40", "₦50", "₦65", "₦80", "₦100", "₦125", "₦150", "₦200", "₦250", "₦300", "₦400", "₦500", "₦1,000", "₦2,500"],
+            3: ["₦72", "₦90", "₦113", "₦141", "₦176", "₦220", "₦275", "₦344", "₦429", "₦537", "₦671", "₦839", "₦1,049", "₦1,311", "₦1,638", "₦2,048", "₦2,560", "₦3,200", "₦4,000", "₦5,000"]
+        };
+
+        const QUESTIONS_BY_LEVEL = {
+            1: [
+                { q: "What color is a standard ripe banana?", options: ["Red", "Yellow", "Blue", "Green"], answer: 1 },
+                { q: "How many days are there in a standard week?", options: ["5", "6", "7", "8"], answer: 2 },
+                { q: "Which animal is known as the 'King of the Jungle'?", options: ["Elephant", "Lion", "Tiger", "Cheetah"], answer: 1 }
+            ],
+            2: [
+                { q: "What is the capital city of Nigeria?", options: ["Lagos", "Abuja", "Port Harcourt", "Kano"], answer: 1 },
+                { q: "How many sides does a standard triangle have?", options: ["2", "3", "4", "5"], answer: 1 }
+            ],
+            3: [
+                { q: "Which planet in our solar system is known as the Red Planet?", options: ["Venus", "Saturn", "Mars", "Jupiter"], answer: 2 }
+            ],
+            4: [
+                { q: "Who painted the famous artwork Mona Lisa?", options: ["Vincent van Gogh", "Pablo Picasso", "Leonardo da Vinci", "Claude Monet"], answer: 2 }
+            ],
+            5: [
+                { q: "In what year did the RMS Titanic sink on its maiden voyage?", options: ["1912", "1905", "1920", "1898"], answer: 0 }
+            ],
+            6: [
+                { q: "Which chemical element has the symbol 'Fe' on the periodic table?", options: ["Fluorine", "Iron", "Francium", "Fermium"], answer: 1 }
+            ],
+            7: [
+                { q: "What is the smallest independent country in the world by total land area?", options: ["Monaco", "Liechtenstein", "San Marino", "Vatican City"], answer: 3 }
+            ],
+            8: [
+                { q: "What is the chemical element with the atomic number 79?", options: ["Silver", "Gold", "Platinum", "Mercury"], answer: 1 }
+            ],
+            9: [
+                { q: "What is the name of the boundary surrounding a black hole beyond which nothing escapes?", options: ["Accretion Disk", "Event Horizon", "Singularity", "Photon Sphere"], answer: 1 }
+            ],
+            10: [
+                { q: "What is the chemical formula for ozone?", options: ["O2", "O3", "O4", "CO2"], answer: 1 }
+            ],
+            11: [
+                { q: "What is the value of Euler's number (e) approximately rounded to five decimal places?", options: ["2.71828", "3.14159", "1.41421", "1.73205"], answer: 0 }
+            ],
+            12: [
+                { q: "What is the medical name for the collarbone?", options: ["Scapula", "Clavicle", "Sternum", "Patella"], answer: 1 }
+            ],
+            13: [
+                { q: "What is the term for a word or phrase that reads the same backward as forward?", options: ["Acronym", "Palindrome", "Anagram", "Heteronym"], answer: 1 }
+            ],
+            14: [
+                { q: "What is the chemical symbol for the element Antimony?", options: ["An", "Sb", "At", "Am"], answer: 1 }
+            ],
+            15: [
+                { q: "Which chemical element has the highest melting point of any pure element?", options: ["Iron", "Carbon", "Tungsten", "Rhenium"], answer: 2 }
+            ],
+            16: [
+                { q: "Which organic chemical compound has the formula C6H6 with alternating single and double bonds?", options: ["Cyclohexane", "Benzene", "Toluene", "Phenol"], answer: 1 }
+            ],
+            17: [
+                { q: "What is the name of the mathematical constant defined as the ratio of a circle's circumference to its diameter?", options: ["e", "π (Pi)", "ϕ (Golden Ratio)", "γ"], answer: 1 }
+            ],
+            18: [
+                { q: "What is the name of the effect where the pressure of a fluid decreases as its velocity increases?", options: ["Venturi Effect", "Bernoulli's Principle", "Coandă Effect", "Pascal's Law"], answer: 1 }
+            ],
+            19: [
+                { q: "Which organic reaction converts a carboxylic acid and an alcohol into an ester?", options: ["Grignard Reaction", "Fischer Esterification", "Aldol Condensation", "Diels-Alder Reaction"], answer: 1 }
+            ],
+            20: [
+                { q: "What is the exact value of the fine-structure constant (α) approximately to four significant figures?", options: ["1/137.0", "1/100.5", "1/150.2", "1/128.4"], answer: 0 }
+            ]
+        };
+
+        let currentSelectedTier = 1;
+        let userEmail = "";
+        let currentQuestionIdx = 0;
+        let activeQuestionData = null;
+        let timerInterval = null;
+        let timeLeft = 20;
+        let isAudioMuted = false;
+        let isAutoReadEnabled = false;
+        let synth = window.speechSynthesis;
+        let currentUtterance = null;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            document.getElementById("autoReadToggleBtn").addEventListener("click", toggleAutoRead);
+            document.getElementById("soundToggleBtn").addEventListener("click", toggleSound);
+            document.getElementById("readQuestionBtn").addEventListener("click", speakCurrentQuestion);
+        });
+
+        function selectTier(tierNumber) {
+            currentSelectedTier = tierNumber;
+            document.querySelectorAll(".tier-option").forEach(el => el.classList.remove("selected"));
+            document.querySelector(`.tier-option[data-tier="${tierNumber}"]`).classList.add("selected");
+        }
+
+        function handlePaystackPayment(e) {
+            e.preventDefault();
+            userEmail = document.getElementById("userEmail").value.trim();
+            if (!userEmail) return;
+
+            const tierAmounts = { 1: 200, 2: 500, 3: 1000 };
+            const amountInKobo = tierAmounts[currentSelectedTier] * 100;
+
+            const handler = PaystackPop.setup({
+                key: 'pk_live_fc0f932056fd8b1265e34a3f47d271d6e8659201',
+                email: userEmail,
+                amount: amountInKobo,
+                currency: "NGN",
+                ref: 'FNT_' + Math.floor((Math.random() * 1000000000) + 1),
+                callback: function(response) {
+                    document.getElementById("welcomeModal").classList.add("hidden");
+                    startTriviaGame();
+                },
+                onClose: function() {
+                    document.getElementById("welcomeModal").classList.add("hidden");
+                    startTriviaGame();
+                }
+            });
+
+            try {
+                handler.openIframe();
+            } catch (err) {
+                document.getElementById("welcomeModal").classList.add("hidden");
+                startTriviaGame();
+            }
+        }
+
+        function startTriviaGame() {
+            currentQuestionIdx = 0;
+            document.getElementById("appContainer").classList.add("game-active");
+            renderPrizeLadder();
+            loadQuestion(currentQuestionIdx);
+        }
+
+        function renderPrizeLadder() {
+            const ladderList = document.getElementById("prizeLadderList");
+            ladderList.innerHTML = "";
+            const currentLadder = PRIZE_LADDERS[currentSelectedTier];
+
+            currentLadder.forEach((prize, idx) => {
+                const li = document.createElement("li");
+                li.className = "ladder-item";
+                li.id = `ladder-step-${idx}`;
+                li.innerHTML = `<span>Lvl ${idx + 1}</span> <span>${prize}</span>`;
+                ladderList.appendChild(li);
+            });
+        }
+
+        function updateLadderUI() {
+            const currentLadder = PRIZE_LADDERS[currentSelectedTier];
+            currentLadder.forEach((_, idx) => {
+                const item = document.getElementById(`ladder-step-${idx}`);
+                if (!item) return;
+                item.classList.remove("active", "passed");
+                if (idx === currentQuestionIdx) {
+                    item.classList.add("active");
+                } else if (idx < currentQuestionIdx) {
+                    item.classList.add("passed");
+                }
+            });
+        }
+
+        function loadQuestion(levelIndex) {
+            stopSpeech();
+            clearInterval(timerInterval);
+
+            if (levelIndex >= 20) {
+                handleGameVictory();
+                return;
+            }
+
+            updateLadderUI();
+
+            const levelNumber = levelIndex + 1;
+            const levelPool = QUESTIONS_BY_LEVEL[levelNumber] || QUESTIONS_BY_LEVEL[1];
+            const randomQuestionIdx = Math.floor(Math.random() * levelPool.length);
+            activeQuestionData = levelPool[randomQuestionIdx];
+
+            document.getElementById("questionNumText").innerText = `Question ${levelNumber} of 20`;
+            document.getElementById("currentLevelText").innerText = `Level ${levelNumber} Difficulty`;
+            document.getElementById("questionText").innerText = activeQuestionData.q;
+
+            const optionsGrid = document.getElementById("optionsGrid");
+            optionsGrid.innerHTML = "";
+
+            const optionKeys = ["A", "B", "C", "D"];
+            activeQuestionData.options.forEach((optText, optIdx) => {
+                const btn = document.createElement("button");
+                btn.className = "option-btn";
+                btn.onclick = () => handleAnswerSelect(optIdx);
+                btn.innerHTML = `
+                    <div class="option-key">${optionKeys[optIdx]}</div>
+                    <span>${optText}</span>
+                `;
+                optionsGrid.appendChild(btn);
+            });
+
+            startTimer();
+            if (isAutoReadEnabled) {
+                setTimeout(() => speakCurrentQuestion(), 300);
+            }
+        }
+
+        function startTimer() {
+            timeLeft = 20;
+            const timerBar = document.getElementById("timerBar");
+            timerBar.classList.remove("warning");
+            timerBar.style.width = "100%";
+
+            timerInterval = setInterval(() => {
+                timeLeft -= 0.1;
+                const percentage = (timeLeft / 20) * 100;
+                timerBar.style.width = `${percentage}%`;
+
+                if (timeLeft <= 5) timerBar.classList.add("warning");
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    handleAnswerSelect(-1);
+                }
+            }, 100);
+        }
+
+        function handleAnswerSelect(selectedOptionIdx) {
+            stopSpeech();
+            clearInterval(timerInterval);
+
+            const optionBtns = document.querySelectorAll(".option-btn");
+            optionBtns.forEach(btn => btn.classList.add("disabled"));
+
+            if (selectedOptionIdx === activeQuestionData.answer) {
+                playSound("correct");
+                if (selectedOptionIdx >= 0) optionBtns[selectedOptionIdx].classList.add("correct");
+
+                setTimeout(() => {
+                    currentQuestionIdx++;
+                    if (currentQuestionIdx >= 20) {
+                        handleGameVictory();
+                    } else {
+                        loadQuestion(currentQuestionIdx);
+                    }
+                }, 1200);
+            } else {
+                playSound("wrong");
+                if (selectedOptionIdx >= 0) optionBtns[selectedOptionIdx].classList.add("wrong");
+                optionBtns[activeQuestionData.answer].classList.add("correct");
+
+                setTimeout(() => {
+                    handleGameOver(false);
+                }, 1500);
+            }
+        }
+
+        function handleGameVictory() {
+            stopSpeech();
+            clearInterval(timerInterval);
+            const postModal = document.getElementById("postGameModal");
+            const postTitle = document.getElementById("postGameTitle");
+            const postSubtitle = document.getElementById("postGameSubtitle");
+            const finalPrizeText = document.getElementById("finalPrizeText");
+            const iconEl = document.getElementById("postGameIcon");
+
+            const currentLadder = PRIZE_LADDERS[currentSelectedTier];
+            const prizeWon = currentLadder[19];
+
+            postTitle.innerText = "GRAND CHAMPION!";
+            postSubtitle.innerText = "Exceptional performance! You conquered all 20 levels!";
+            iconEl.innerHTML = `<i class="fa-solid fa-crown" style="color: #f59e0b;"></i>`;
+            finalPrizeText.innerText = prizeWon;
+            finalPrizeText.classList.remove("hidden");
+            triggerConfetti();
+
+            postModal.classList.remove("hidden");
+            sendWinnerEmailsSequentially(prizeWon);
+        }
+
+        function handleGameOver(isVictory) {
+            stopSpeech();
+            const postModal = document.getElementById("postGameModal");
+            const postTitle = document.getElementById("postGameTitle");
+            const postSubtitle = document.getElementById("postGameSubtitle");
+            const finalPrizeText = document.getElementById("finalPrizeText");
+            const iconEl = document.getElementById("postGameIcon");
+
+            postTitle.innerText = "Game Over";
+            postSubtitle.innerText = "You failed to reach the grand prize.";
+            iconEl.innerHTML = `<i class="fa-solid fa-circle-xmark" style="color: var(--accent-red);"></i>`;
+            finalPrizeText.classList.add("hidden");
+            document.getElementById("emailSpinnerContainer").innerHTML = "";
+            document.getElementById("emailModalActions").style.display = "block";
+
+            postModal.classList.remove("hidden");
+        }
+
+        function restartGame() {
+            document.getElementById("postGameModal").classList.add("hidden");
+            document.getElementById("welcomeModal").classList.remove("hidden");
+            document.getElementById("emailSpinnerContainer").innerHTML = "";
+            document.getElementById("emailModalActions").style.display = "none";
+        }
+
+        /* ==========================================================================
+           SEQUENTIAL EMAILJS DISPATCH & STATUS MODAL LOGIC
+           ========================================================================== */
+        function sendWinnerEmailsSequentially(payoutAmount) {
+            const emailSpinnerContainer = document.getElementById("emailSpinnerContainer");
+            const emailModalActions = document.getElementById("emailModalActions");
+
+            emailSpinnerContainer.innerHTML = `
+                <i class="fa-solid fa-spinner fa-spin" style="font-size: 3rem; color: var(--accent-green);"></i>
+                <h3 style="margin-top: 15px; margin-bottom: 10px; color: #0f172a;">Sending Confirmation Emails...</h3>
+                <p style="color: var(--text-muted); font-size: 0.95rem;">Please wait while we send confirmation notices to you and the administrator.</p>
+            `;
+            emailModalActions.style.display = 'none';
+
+            if (EMAILJS_CONFIG.PUBLIC_KEY === "YOUR_PUBLIC_KEY") {
+                console.log("EmailJS keys not configured.");
+                return;
+            }
+
+            const currentDate = new Date().toLocaleString();
+            const SERVICE_ID = EMAILJS_CONFIG.SERVICE_ID;
+            const ADMIN_TEMPLATE_ID = EMAILJS_CONFIG.ADMIN_TEMPLATE_ID;
+            const USER_TEMPLATE_ID = EMAILJS_CONFIG.USER_TEMPLATE_ID;
+
+            const adminParams = {
+                admin_email: 'asam72634@gmail.com',
+                subscriber_email: userEmail,
+                client_fullname: userEmail,
+                client_mail: userEmail,
+                client_whatsapp: `Tier ${currentSelectedTier}`,
+                project_brief: `WINNER! Player successfully completed all 20 Fort Naira Trivia levels in Tier ${currentSelectedTier} and won ${payoutAmount} at ${currentDate}.`,
+                submission_time: currentDate,
+                date: currentDate
+            };
+
+            const userParams = {
+                user_email: userEmail,
+                client_fullname: userEmail,
+                client_mail: userEmail,
+                support_email: 'fortdevelopers492@gmail.com',
+                date: currentDate
+            };
+
+            emailjs.send(SERVICE_ID, ADMIN_TEMPLATE_ID, adminParams)
+                .then(function(res) {
+                    return emailjs.send(SERVICE_ID, USER_TEMPLATE_ID, userParams);
+                })
+                .then(function(res) {
+                    emailSpinnerContainer.innerHTML = `
+                        <i class="fa-solid fa-circle-check" style="font-size: 3rem; color: var(--accent-green);"></i>
+                        <h3 style="margin-top: 15px; margin-bottom: 10px; color: var(--accent-green);">Success!</h3>
+                        <p style="color: var(--text-muted); font-size: 0.95rem;">Victory verified and confirmation emails successfully dispatched to admin and your inbox.</p>
+                    `;
+                    emailModalActions.style.display = 'block';
+                })
+                .catch(function(err) {
+                    console.error('EmailJS dispatch error:', err);
+                    emailSpinnerContainer.innerHTML = `
+                        <i class="fa-solid fa-circle-exclamation" style="font-size: 3rem; color: var(--accent-red);"></i>
+                        <h3 style="margin-top: 15px; margin-bottom: 10px; color: var(--accent-red);">Victory Registered (Email Warning)</h3>
+                        <p style="color: var(--text-muted); font-size: 0.95rem;">You have won the grand prize, but one or more confirmation emails failed to send.</p>
+                    `;
+                    emailModalActions.style.display = 'block';
+                });
+        }
+
+        function toggleAutoRead() {
+            isAutoReadEnabled = !isAutoReadEnabled;
+            const statusText = document.getElementById("autoReadStatus");
+            const btn = document.getElementById("autoReadToggleBtn");
+
+            if (isAutoReadEnabled) {
+                statusText.innerText = "Auto-Read: ON";
+                btn.classList.add("active");
+                speakCurrentQuestion();
+            } else {
+                statusText.innerText = "Auto-Read: OFF";
+                btn.classList.remove("active");
+                stopSpeech();
+            }
+        }
+
+        function speakCurrentQuestion() {
+            if (!('speechSynthesis' in window)) return;
+            stopSpeech();
+            if (!activeQuestionData) return;
+
+            const optionKeys = ["A", "B", "C", "D"];
+            let optionsText = activeQuestionData.options
+                .map((opt, i) => `Option ${optionKeys[i]}: ${opt}`)
+                .join(". ");
+
+            const textToRead = `Level ${currentQuestionIdx + 1}. ${activeQuestionData.q}. ${optionsText}`;
+
+            currentUtterance = new SpeechSynthesisUtterance(textToRead);
+            currentUtterance.rate = 0.95;
+
+            const readBtn = document.getElementById("readQuestionBtn");
+            const speakingBadge = document.getElementById("speakingBadge");
+
+            currentUtterance.onstart = () => {
+                readBtn.classList.add("speaking");
+                speakingBadge.classList.add("active");
+            };
+            currentUtterance.onend = () => {
+                readBtn.classList.remove("speaking");
+                speakingBadge.classList.remove("active");
+            };
+            currentUtterance.onerror = () => {
+                readBtn.classList.remove("speaking");
+                speakingBadge.classList.remove("active");
+            };
+
+            synth.speak(currentUtterance);
+        }
+
+        function stopSpeech() {
+            if (synth && synth.speaking) synth.cancel();
+            const readBtn = document.getElementById("readQuestionBtn");
+            const speakingBadge = document.getElementById("speakingBadge");
+            if (readBtn) readBtn.classList.remove("speaking");
+            if (speakingBadge) speakingBadge.classList.remove("active");
+        }
+
+        function toggleSound() {
+            isAudioMuted = !isAudioMuted;
+            const btn = document.getElementById("soundToggleBtn");
+            btn.innerHTML = isAudioMuted ? `<i class="fa-solid fa-volume-xmark"></i>` : `<i class="fa-solid fa-music"></i>`;
+        }
+
+        function playSound(type) {
+            if (isAudioMuted) return;
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+
+            if (type === "correct") {
+                osc.type = "sine";
+                osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+                osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.3);
+            } else if (type === "wrong") {
+                osc.type = "sawtooth";
+                osc.frequency.setValueAtTime(220, ctx.currentTime);
+                osc.frequency.setValueAtTime(130.81, ctx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.4);
+            }
+        }
+
+        function triggerConfetti() {
+            if (typeof confetti === "function") {
+                confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
+            }
+        }
+    </script>
+</body>
+</html>
